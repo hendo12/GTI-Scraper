@@ -12,8 +12,8 @@ Before running the script, ensure you have the following installed:
 
 Additionally, you need to run the following command in the terminal to install the required Python packages:
 
-```pip install -r requirements.txt
-
+```python
+pip install -r requirements.txt
 ```
 
 ## Configuration
@@ -28,8 +28,8 @@ The `config.ini` file contains the following settings that you can update as nee
 
 To run the script, execute the following command:
 
-```python scraper.py
-
+```python
+python scraper.py
 ```
 
 By default, the script will run once when executed. You can modify the scheduling interval in the `scraper_vw.py` file by updating the following line:
