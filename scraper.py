@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException  
+from selenium.webdriver.common.action_chains import ActionChains
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -64,24 +65,36 @@ def scrape_cars(url, manual_only):
 
     # Apply the manual transmission filter
     if manual_only:
+        ## open filters
         filter_element = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "#Features"))  # Replace with the appropriate CSS selector
         )
         filter_element.click()
         time.sleep(2)
 
-        manual_transmission_option = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, 'input[value="Manual"]'))
+        ## select manual transmission option
+        parent_elements = WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.StyledLabel-sc-tap8jg.btwHCA'))
         )
-        manual_transmission_option.click()
+
+        manual_transmission_option = None
+        for parent_element in parent_elements:
+            child_element = parent_element.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
+            if child_element.get_attribute('value') == "Manual":
+                manual_transmission_option = parent_element
+                break
+
+        if manual_transmission_option:
+            manual_transmission_option.click()
+        else:
+            print("Manual transmission option not found.")
         time.sleep(2)
 
         ## close filter
-        filter_element.click()
-        # apply_filter_button = WebDriverWait(driver, 10).until(
-        #     EC.element_to_be_clickable((By.CSS_SELECTOR, ".apply-filter-button-selector"))  # Replace with the appropriate CSS selector
+        # filter_element = WebDriverWait(driver, 10).until(
+        #     EC.element_to_be_clickable((By.CSS_SELECTOR, "#Features"))
         # )
-        # apply_filter_button.click()
+        # filter_element.click()
         time.sleep(5)  # Give some time for the page to fully load after applying the filter
 
 
@@ -90,29 +103,30 @@ def scrape_cars(url, manual_only):
     wait.until(EC.visibility_of_any_elements_located((By.CSS_SELECTOR, ".result-card-wrapper")))
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
-    driver.quit()
 
     print("Scraping process completed.")
 
     # Find the car elements on the page
     cars = soup.select(".result-card-wrapper")
 
-    print("Cars: ", cars)
-
     for car in cars:
-        car_name = car.select_one(".result-card-car-trim").get_text(strip=True)  # Replace ".name-class-selector" with the appropriate CSS selector
+        car_trim = car.select_one(".result-card-car-trim").get_text(strip=True)  # Replace ".name-class-selector" with the appropriate CSS selector
         car_price = car.select_one(".result-card-price").get_text(strip=True)  # Replace ".price-class-selector" with the appropriate CSS selector
-        car_location = car.select_one(".result-dealer-name").get_text(strip=True)  # Replace ".location-class-selector" with the appropriate CSS selector
-        car_distance = car.select_one('.result-dealer-distance')
-        # car_transmission = car.select_one(".transmission-class-selector").get_text(strip=True)  # Replace ".transmission-class-selector" with the appropriate CSS selector
 
-        print(f"Processing car: {car_name}, {car_price}, {car_location}, {car_distance}")
+        dealer_tooltip = driver.find_element(By.CSS_SELECTOR, ".result-dealer-name")  
+        ActionChains(driver).move_to_element(dealer_tooltip).perform()  # Hover over the dealer info for tooltip
+
+        dealer_name = driver.find_element(By.CSS_SELECTOR, ".dealer-tooltip .styled-dealer-info .sc-jAaTju.jscYYl").text.strip()
+        dealer_distance = driver.find_element(By.CSS_SELECTOR, '.dealer-tooltip .styled-dealer-info .sc-jAaTju.fjhxpY').text.strip()
+        dealer_phone = driver.find_element(By.CSS_SELECTOR, '.dealer-tooltip .StyledTextComponent-sc-hqqa9q.hXYIcS').text.strip()
+
+        print(f"\n Processing GTI: \n Trim: {car_trim}, \n Price: {car_price}, \n Dealer: {dealer_name}, \n Distance: {dealer_distance}, \n Phone: {dealer_phone}")
         
-        # if manual_only and "manual" not in car_transmission.lower():
-        #     continue
         
         # Process the car information, e.g., save to a file or send an email
         # ...
+
+    driver.quit()
 
 def main():
     url = get_search_url(zip_code, radius)
