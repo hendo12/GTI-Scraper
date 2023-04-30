@@ -23,7 +23,7 @@ def get_search_url(zip_code, radius=100):
     url = f"{base_url}?distance-app={radius}&page-app=0&year-app=2023&zip-app={zip_code}"
     return url
 
-def scrape_cars(url, manual_only=True):
+def scrape_cars(url, manual_only):
     options = Options()
     options.add_argument("start-maximized")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -62,6 +62,28 @@ def scrape_cars(url, manual_only=True):
     except TimeoutException:
         print("No enter ZIP code pop-up.")
 
+    # Apply the manual transmission filter
+    if manual_only:
+        filter_element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#Features"))  # Replace with the appropriate CSS selector
+        )
+        filter_element.click()
+        time.sleep(2)
+
+        manual_transmission_option = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'input[value="Manual"]'))
+        )
+        manual_transmission_option.click()
+        time.sleep(2)
+
+        ## close filter
+        filter_element.click()
+        # apply_filter_button = WebDriverWait(driver, 10).until(
+        #     EC.element_to_be_clickable((By.CSS_SELECTOR, ".apply-filter-button-selector"))  # Replace with the appropriate CSS selector
+        # )
+        # apply_filter_button.click()
+        time.sleep(5)  # Give some time for the page to fully load after applying the filter
+
 
     # Wait for the car elements to be present on the page
     wait = WebDriverWait(driver, 20)  # Change 10 to the maximum number of seconds you want to wait
@@ -82,12 +104,12 @@ def scrape_cars(url, manual_only=True):
         car_price = car.select_one(".result-card-price").get_text(strip=True)  # Replace ".price-class-selector" with the appropriate CSS selector
         car_location = car.select_one(".result-dealer-name").get_text(strip=True)  # Replace ".location-class-selector" with the appropriate CSS selector
         car_distance = car.select_one('.result-dealer-distance')
-        car_transmission = car.select_one(".transmission-class-selector").get_text(strip=True)  # Replace ".transmission-class-selector" with the appropriate CSS selector
+        # car_transmission = car.select_one(".transmission-class-selector").get_text(strip=True)  # Replace ".transmission-class-selector" with the appropriate CSS selector
 
-        print(f"Processing car: {car_name}, {car_price}, {car_location}, {car_distance}, {car_transmission}")
+        print(f"Processing car: {car_name}, {car_price}, {car_location}, {car_distance}")
         
-        if manual_only and "manual" not in car_transmission.lower():
-            continue
+        # if manual_only and "manual" not in car_transmission.lower():
+        #     continue
         
         # Process the car information, e.g., save to a file or send an email
         # ...
