@@ -51,6 +51,7 @@ The script will print the progress and the car information as it scrapes the inv
 - alert me when this has happened
 - fix total price output
 - refactor code
+- GUI?
 
 ## License
 
