@@ -44,6 +44,14 @@ Change the 1 to the desired interval (in hours) between scraper runs.
 
 The script will print the progress and the car information as it scrapes the inventory. You can update the scrape_cars() function to process the car information as needed (e.g., save to a file, send an email).
 
+## Todo
+
+- What to do with the output
+- automate an email or text to dealer if criteria are met
+- alert me when this has happened
+- fix total price output
+- refactor code
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
