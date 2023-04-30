@@ -112,15 +112,20 @@ def scrape_cars(url, manual_only):
     for car in cars:
         car_trim = car.select_one(".result-card-car-trim").get_text(strip=True)  # Replace ".name-class-selector" with the appropriate CSS selector
         car_price = car.select_one(".result-card-price").get_text(strip=True)  # Replace ".price-class-selector" with the appropriate CSS selector
+        price_parts = car_price.split('Total')
+        car_price_cleaned = 'Total'.join([price_parts[0].strip(), price_parts[1].strip()])
+
 
         dealer_tooltip = driver.find_element(By.CSS_SELECTOR, ".result-dealer-name")  
         ActionChains(driver).move_to_element(dealer_tooltip).perform()  # Hover over the dealer info for tooltip
 
         dealer_name = driver.find_element(By.CSS_SELECTOR, ".dealer-tooltip .styled-dealer-info .sc-jAaTju.jscYYl").text.strip()
         dealer_distance = driver.find_element(By.CSS_SELECTOR, '.dealer-tooltip .styled-dealer-info .sc-jAaTju.fjhxpY').text.strip()
-        dealer_phone = driver.find_element(By.CSS_SELECTOR, '.dealer-tooltip .StyledTextComponent-sc-hqqa9q.hXYIcS').text.strip()
+        dealer_info = driver.find_elements(By.CSS_SELECTOR, '.dealer-tooltip .StyledTextComponent-sc-hqqa9q.hXYIcS')
+        dealer_address = dealer_info[0].text.strip()
+        dealer_phone = dealer_info[2].text.strip()
 
-        print(f"\n Processing GTI: \n Trim: {car_trim}, \n Price: {car_price}, \n Dealer: {dealer_name}, \n Distance: {dealer_distance}, \n Phone: {dealer_phone}")
+        print(f"\n Processing GTI: \n Trim: {car_trim} \n Price: {car_price_cleaned} \n Dealer: {dealer_name} \n Distance: {dealer_distance} \n Address: {dealer_address} \n Phone: {dealer_phone}")
         
         
         # Process the car information, e.g., save to a file or send an email
